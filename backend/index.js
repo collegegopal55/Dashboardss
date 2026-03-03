@@ -519,15 +519,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const { connectDB, getConnectionStatus, closeConnection } = require('./config/db');
+
+
 require('dotenv').config();
 
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? 'https://dashboardss-e7ez.onrender.com'
-    : 'http://localhost:5173',
+  origin: 'https://dashboardss-e7ez.onrender.com',
+   
   credentials: true
 }));
 
@@ -581,14 +583,14 @@ app.get('/api/test', (req, res) => {
 // -------------------
 // Production Frontend
 // -------------------
-if (process.env.NODE_ENV === 'production') {
+
   const path = require('path');
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
   app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist','index.html'));
   });
-}
+
 
 // -------------------
 // Error Handling
