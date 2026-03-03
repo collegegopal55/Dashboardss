@@ -23,7 +23,7 @@ import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/UserAuth/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
 import ForgotPassword from './components/UserAuth/ForgotPassword';
-import VerifyOTP from './components/UserAuth/verifyOTP';
+import VerifyOTP from './components/UserAuth/VerifyOTP';
 import ResetPassword from './components/UserAuth/ResetPassword';
 import Register from './components/UserAuth/Register';
 import PrivacyPolicy from './pages/Dashboard/PrivacyPolicy';
