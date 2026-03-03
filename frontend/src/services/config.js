@@ -1,5 +1,6 @@
 // services/config.js
-export const API_BASE_URL = 'http://localhost:5000/api';
+// export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL='https://dashboardss-e7ez.onrender.com/api'
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // Storage Keys
