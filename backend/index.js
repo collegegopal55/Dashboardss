@@ -359,7 +359,7 @@ if (process.env.NODE_ENV === 'production') {
             <p>Backend server is running successfully!</p>
             <div class="links">
               <a href="/api/health">Check API Health</a>
-              <a href="http://localhost:5173">Go to Frontend (Vite Dev Server)</a>
+              <a href="https://dashboardss-e7ez.onrender.com">Go to Frontend (Vite Dev Server)</a>
             </div>
           </div>
         </body>
