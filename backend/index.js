@@ -535,22 +535,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// -------------------
-// MongoDB Connection
-// -------------------
-const connectDB = async () => {
-  try {
-    if (!process.env.MONGODB_URI) {
-      console.log('⚠️ No MongoDB URI found');
-      return;
-    }
+-----------------
 
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ MongoDB Connected');
-  } catch (error) {
-    console.error('❌ MongoDB Error:', error.message);
-  }
-};
 
 connectDB();
 
