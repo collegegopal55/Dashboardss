@@ -515,67 +515,91 @@
 
 
 // server.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 require('dotenv').config();
 
-// Initialize Express
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: [ 'https://dashboardss-e7ez.onrender.com' ],
+  origin: process.env.NODE_ENV === 'production'
+    ? 'https://dashboardss-e7ez.onrender.com'
+    : 'http://localhost:5173',
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
+app.use(express.json());
+
+// -------------------
+// MongoDB Connection
+// -------------------
 const connectDB = async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      console.log('⚠️ No MongoDB URI found');
+      return;
+    }
+
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ MongoDB connected');
-  } catch (err) {
-    console.error('❌ MongoDB connection failed:', err.message);
-    process.exit(1);
+    console.log('✅ MongoDB Connected');
+  } catch (error) {
+    console.error('❌ MongoDB Error:', error.message);
   }
 };
+
 connectDB();
 
+// -------------------
 // Routes
-const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
+// -------------------
+try {
+  const authRoutes = require('./routes/authRoutes');
+  app.use('/api/auth', authRoutes);
+} catch (err) {
+  console.log('⚠️ Auth routes not found');
+}
 
-// Simple health check
+// Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'Server is running', database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
+  res.json({
+    success: true,
+    message: 'Server is running',
+    database: mongoose.connection.readyState === 1
+      ? 'connected'
+      : 'not connected'
+  });
 });
 
-// Serve React frontend in production
+// Test Route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API working' });
+});
+
+// -------------------
+// Production Frontend
+// -------------------
 if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../frontend/dist'); // Adjust if needed
-  app.use(express.static(buildPath));
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(buildPath, 'index.html'));
-    }
-  });
-} else {
-  // Dev landing page
-  app.get('/', (req, res) => {
-    res.send('<h1>Backend running. Frontend on Vite dev server</h1>');
+  const path = require('path');
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+  app.get(/.*/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist','index.html'));
   });
 }
 
-// Error handling middleware
+// -------------------
+// Error Handling
+// -------------------
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: err.message || 'Server error' });
+  res.status(500).json({ message: 'Server Error' });
 });
 
-// Start server
+// -------------------
+// Start Server
+// -------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
