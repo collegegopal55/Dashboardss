@@ -72,6 +72,8 @@ console.log('API Base URL:', API_BASE_URL);
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
+       maxContentLength: 50 * 1024 * 1024, 
+  maxBodyLength: 50 * 1024 * 1024,
   headers: {
     'Content-Type': 'application/json',
   },
