@@ -515,9 +515,11 @@
 
 
 // server.js
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const path = require("path"); // Move this to the top with other imports
 require("dotenv").config();
 
 const app = express();
@@ -535,6 +537,16 @@ mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log("✅ MongoDB Connected"))
 .catch((err) => console.log("❌ MongoDB Error:", err.message));
 
+// Serve static files from uploads directory - MOVED HERE (before routes)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Create uploads directory if it doesn't exist
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads/avatars');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Created uploads directory:', uploadsDir);
+}
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -554,11 +566,11 @@ app.get("/api/health", (req, res) => {
 });
 
 // Frontend Serve
-const path = require("path");
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
+// Catch-all route for frontend
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist","index.html"));
+  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
 });
 
 // Server Start
