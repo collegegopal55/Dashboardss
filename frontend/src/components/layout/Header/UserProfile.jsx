@@ -30,7 +30,7 @@ const UserProfile = () => {
       >
         <div className="text-right hidden sm:block">
           <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {user.username}
+            {user.fullName}
           </p>
           {/* <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             {user.email}
