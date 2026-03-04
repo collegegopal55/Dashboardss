@@ -429,13 +429,17 @@ app.use(cors({
   credentials: true
 }));
 
-// Body parsing middleware with increased limits
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Request logging middleware
+// Add timeout middleware
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.url} - ${req.ip}`);
+  res.setTimeout(120000, () => { // 2 minutes timeout
+    res.status(408).json({
+      success: false,
+      message: 'Request timeout'
+    });
+  });
   next();
 });
 
