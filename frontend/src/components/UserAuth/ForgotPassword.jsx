@@ -18,7 +18,7 @@ const ForgotPassword = () => {
     setSuccess(false);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
+      const response = await axios.post('https://dashboardss-e7ez.onrender.com/api/auth/forgot-password', { email });
       
       if (response.data.success) {
         setSuccess(true);
