@@ -255,7 +255,7 @@ const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const { uploadAvatar } = require('../config/cloudinary'); // Import from cloudinary config
-
+require("dotenv").config();
 // Validation rules
 const registerValidation = [
   body('username').isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
