@@ -562,8 +562,7 @@ mongoose.connect(process.env.MONGODB_URI)
 // Serve static files from uploads directory - MOVED HERE (before routes)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Create uploads directory if it doesn't exist
-const fs = require('fs');
+
 const uploadsDir = path.join(__dirname, 'uploads/avatars');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
