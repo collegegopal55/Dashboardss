@@ -320,11 +320,7 @@ async uploadAvatar(formData) {
       console.log('5. FormData:', pair[0], pair[1]);
     }
     
-    const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData);
     
     console.log('6. Upload response:', response.data);
     return response.data;
