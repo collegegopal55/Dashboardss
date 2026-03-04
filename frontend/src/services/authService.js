@@ -169,7 +169,7 @@
 
 
 import api from './api';
-import { API_ENDPOINTS, AUTH_TOKEN_KEY, USER_DATA_KEY } from './config';
+import { API_ENDPOINTS, AUTH_TOKEN_KEY, USER_DATA_KEY ,API_BASE_URL} from './config';
 
 class AuthService {
   async login(loginData) {
