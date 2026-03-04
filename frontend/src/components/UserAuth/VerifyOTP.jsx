@@ -93,7 +93,7 @@ const VerifyOTP = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/verify-otp', {
+      const response = await axios.post('https://dashboardss-e7ez.onrender.com/api/auth/verify-otp', {
         email,
         otp: otpString
       });
@@ -124,7 +124,7 @@ const VerifyOTP = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
+      const response = await axios.post('https://dashboardss-e7ez.onrender.com/api/auth/forgot-password', { email });
       
       if (response.data.success) {
         setMessage('New OTP sent successfully!');
