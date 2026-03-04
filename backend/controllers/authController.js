@@ -565,7 +565,198 @@ const testPassword = async (req, res) => {
     });
   }
 };
+/**
+ * @desc    Update user profile
+ * @route   PUT /api/auth/profile
+ * @access  Private
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { fullName, department, position, phone, address } = req.body;
+    
+    // Find user and update
+    const user = await User.findById(req.user.userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
+    // Update fields if provided
+    if (fullName) user.fullName = fullName;
+    if (department) user.department = department;
+    if (position) user.position = position;
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
+
+    await user.save();
+
+    // Return updated user without sensitive data
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.resetPasswordOTP;
+    delete userResponse.resetPasswordExpires;
+
+    return res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error('❌ Update profile error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error updating profile'
+    });
+  }
+};
+
+/**
+ * @desc    Change password
+ * @route   PUT /api/auth/change-password
+ * @access  Private
+ */
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Find user with password field
+    const user = await User.findById(req.user.userId).select('+password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Change password error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error changing password'
+    });
+  }
+};
+
+/**
+ * @desc    Update user preferences
+ * @route   PUT /api/auth/preferences
+ * @access  Private
+ */
+const updatePreferences = async (req, res) => {
+  try {
+    const { notifications, theme, language } = req.body;
+
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Initialize preferences if not exists
+    if (!user.preferences) {
+      user.preferences = {};
+    }
+
+    // Update preferences
+    if (notifications !== undefined) user.preferences.notifications = notifications;
+    if (theme !== undefined) user.preferences.theme = theme;
+    if (language !== undefined) user.preferences.language = language;
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: 'Preferences updated successfully',
+      preferences: user.preferences
+    });
+
+  } catch (error) {
+    console.error('❌ Update preferences error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error updating preferences'
+    });
+  }
+};
+
+/**
+ * @desc    Upload avatar
+ * @route   POST /api/auth/avatar
+ * @access  Private
+ */
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload an image file'
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Save avatar URL/path
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    user.avatar = avatarUrl;
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: 'Avatar uploaded successfully',
+      user: {
+        ...user.toObject(),
+        avatar: avatarUrl
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Upload avatar error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error uploading avatar'
+    });
+  }
+};
+
+// Make sure to export these new functions
 module.exports = {
   register,
   login,
@@ -574,5 +765,9 @@ module.exports = {
   forgotPassword,
   verifyOTP,
   resetPassword,
-  testPassword
+  testPassword,
+  updateProfile,
+  changePassword,
+  updatePreferences,
+  uploadAvatar
 };
