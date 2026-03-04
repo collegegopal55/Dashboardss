@@ -1,0 +1,440 @@
+// ============================================
+// BACKEND RUNNING LOGS - AUTHENTICATION SYSTEM
+// ============================================
+// Generated: ${new Date().toISOString()}
+// Environment: ${process.env.NODE_ENV || 'development'}
+// ============================================
+
+/**
+ * HOW TO USE:
+ * 1. Copy this file to your backend root directory
+ * 2. Run: node server.js > logs.txt 2>&1
+ * 3. Or import this logging configuration in your main server file
+ */
+
+// ============================================
+// SERVER STARTUP LOGS
+// ============================================
+
+🚀 [${new Date().toLocaleTimeString()}] ======================================
+🚀 STARTING BACKEND SERVER
+🚀 =============================================
+
+📋 System Information:
+   • Node Version: ${process.version}
+   • Platform: ${process.platform}
+   • Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB
+   • PID: ${process.pid}
+
+⚙️ Loading Configuration:
+   • Environment: ${process.env.NODE_ENV || 'development'}
+   • Port: ${process.env.PORT || 5000}
+   • JWT Secret: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing'}
+   • MongoDB URI: ${process.env.MONGODB_URI ? '✅ Configured' : '❌ Missing'}
+   • Email Service: ${process.env.EMAIL_USER ? '✅ Configured' : '❌ Missing'}
+
+// ============================================
+// DATABASE CONNECTION LOGS
+// ============================================
+
+📦 [${new Date().toLocaleTimeString()}] Initializing Database Connection...
+   Attempting to connect to MongoDB...
+
+✅ [${new Date().toLocaleTimeString()}] MongoDB Connected Successfully!
+   • Host: ${mongoose.connection.host}
+   • Database: ${mongoose.connection.name}
+   • State: Connected (1)
+   • Models Loaded: User, Employee, etc.
+
+❌ [ERROR] MongoDB Connection Failed!
+   • Error: ${error.message}
+   • Stack: ${error.stack}
+   • Retrying in 5 seconds...
+
+⚠️ [${new Date().toLocaleTimeString()}] MongoDB Disconnected!
+   • State: ${mongoose.connection.readyState}
+   • Reason: Connection lost
+   • Auto-reconnect: Enabled
+
+// ============================================
+// SERVER STARTUP COMPLETE
+// ============================================
+
+✅ [${new Date().toLocaleTimeString()}] Server Started Successfully!
+   • URL: http://localhost:${process.env.PORT || 5000}
+   • Environment: ${process.env.NODE_ENV || 'development'}
+   • CORS: Enabled for all origins
+
+📡 Available Routes:
+   • Auth Routes: /api/auth/*
+   • User Routes: /api/users/*
+   • Employee Routes: /api/employees/*
+
+⏰ Server Time: ${new Date().toString()}
+🚀 Ready to accept connections...
+
+// ============================================
+// INCOMING REQUEST LOGS
+// ============================================
+
+// ----------------------------------------------------------------------
+📨 [${new Date().toLocaleTimeString()}] INCOMING REQUEST
+   • Method: ${req.method}
+   • Path: ${req.originalUrl}
+   • IP: ${req.ip}
+   • User-Agent: ${req.headers['user-agent']}
+   • Content-Type: ${req.headers['content-type']}
+   • Body: ${JSON.stringify(req.body).substring(0, 200)}${JSON.stringify(req.body).length > 200 ? '...' : ''}
+// ----------------------------------------------------------------------
+
+// ============================================
+// AUTHENTICATION ROUTES LOGS
+// ============================================
+
+// ----------------------------------------------------------------------
+📝 [${new Date().toLocaleTimeString()}] REGISTER ENDPOINT
+   └─ POST /api/auth/register
+   
+   📋 Request Body: { username, email, role }
+   
+   🔍 Processing Steps:
+   • Step 1: Validating input...
+     ✓ Validation passed
+   • Step 2: Checking existing user...
+     ✓ No duplicate found
+   • Step 3: Hashing password...
+     ✓ Password hashed: ${bcrypt.hashSync('***', 10).substring(0, 20)}...
+   • Step 4: Creating user in database...
+     ✓ User created: ID = 507f1f77bcf86cd799439011
+   • Step 5: Generating JWT token...
+     ✓ Token generated: eyJhbGciOiJIUzI1NiIs...
+   
+   ✅ Response: 201 Created
+   ⏱️ Time Taken: 234ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+🔐 [${new Date().toLocaleTimeString()}] LOGIN ENDPOINT
+   └─ POST /api/auth/login
+   
+   📋 Request Body: { username: "john_doe", password: "***" }
+   
+   🔍 Processing Steps:
+   • Step 1: Validating credentials...
+     ✓ Username/email provided
+   • Step 2: Building query...
+     ✓ Query: {$or: [{username: "john_doe"}, {email: "john_doe"}]}
+   • Step 3: Finding user...
+     ✓ User found: John Doe (ID: 507f1f77bcf86cd799439011)
+   • Step 4: Checking account status...
+     ✓ Account active
+   • Step 5: Verifying password...
+     ✓ Password valid
+   • Step 6: Updating last login...
+     ✓ lastLogin = ${new Date().toISOString()}
+   • Step 7: Generating token...
+     ✓ Token generated
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 156ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+❌ [${new Date().toLocaleTimeString()}] LOGIN FAILED
+   └─ POST /api/auth/login
+   
+   📋 Request Body: { username: "john_doe", password: "***" }
+   
+   🔍 Failure Analysis:
+   • User found: ✓ Yes
+   • Password check: ❌ Invalid
+   • Attempt count: 3/5 (rate limiting)
+   
+   ⚠️ Security Alert: Failed login attempt from IP: 192.168.1.100
+   ⏱️ Time Taken: 89ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+👤 [${new Date().toLocaleTimeString()}] GET PROFILE ENDPOINT
+   └─ GET /api/auth/me
+   
+   🔑 Authentication:
+   • Token: ✓ Valid
+   • User ID: 507f1f77bcf86cd799439011
+   • Role: employee
+   
+   📊 Database Query:
+   • Finding user by ID...
+   • Excluding: -password -resetPasswordOTP
+   ✓ User retrieved successfully
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 67ms
+// ----------------------------------------------------------------------
+
+// ============================================
+// PASSWORD RESET FLOW LOGS
+// ============================================
+
+// ----------------------------------------------------------------------
+📧 [${new Date().toLocaleTimeString()}] FORGOT PASSWORD
+   └─ POST /api/auth/forgot-password
+   
+   📧 Email: user@example.com
+   
+   🔍 Processing:
+   • Step 1: Database connection check...
+     ✓ Connected (state: 1)
+   • Step 2: Finding user...
+     ✓ User found: John Doe
+   • Step 3: Generating OTP...
+     ✓ OTP: 483729
+   • Step 4: Hashing OTP...
+     ✓ Hash: $2a$10$XgBUXbQ5xJ7yK8zL9mN1oO
+   • Step 5: Saving to database...
+     ✓ resetPasswordOTP = [HASHED]
+     ✓ resetPasswordExpires = ${new Date(Date.now() + 600000).toISOString()}
+   • Step 6: Sending email...
+     ✓ Email sent via SMTP
+   
+   ✅ Response: 200 OK (Generic success message)
+   ⏱️ Time Taken: 1250ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+🔢 [${new Date().toLocaleTimeString()}] VERIFY OTP
+   └─ POST /api/auth/verify-otp
+   
+   📋 Request: { email: "user@example.com", otp: "483729" }
+   
+   🔍 Verification Steps:
+   • Step 1: Finding user...
+     ✓ User found
+   • Step 2: Checking OTP existence...
+     ✓ OTP present
+   • Step 3: Checking expiry...
+     ✓ Valid (expires in 8 minutes)
+   • Step 4: Comparing OTP...
+     ✓ OTP valid
+   • Step 5: Generating reset token...
+     ✓ Reset token generated (15 min expiry)
+   • Step 6: Clearing OTP...
+     ✓ OTP fields nullified
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 187ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+❌ [${new Date().toLocaleTimeString()}] OTP VERIFICATION FAILED
+   └─ POST /api/auth/verify-otp
+   
+   📋 Request: { email: "user@example.com", otp: "123456" }
+   
+   ❌ Failure Reason: Invalid OTP
+   • Attempts: 2/3
+   • Remaining attempts: 1
+   • IP: 192.168.1.100
+   
+   ⚠️ Security: Rate limiting active
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+🔄 [${new Date().toLocaleTimeString()}] RESET PASSWORD
+   └─ POST /api/auth/reset-password
+   
+   === 🔐 PASSWORD RESET EXECUTION ===
+   
+   📋 Request: { resetToken: "***", newPassword: "***" }
+   
+   🔍 Reset Steps:
+   • Step 1: Validating reset token...
+     ✓ Token valid
+     ✓ Purpose: password-reset
+     ✓ User ID: 507f1f77bcf86cd799439011
+   • Step 2: Finding user...
+     ✓ User found: John Doe
+   • Step 3: Hashing new password...
+     ✓ New hash: $2a$10$XgBUXbQ5xJ7yK8zL9mN1oO
+   • Step 4: Updating database...
+     ✓ Password updated
+     ✓ Reset fields cleared
+   • Step 5: Sending success email...
+     ✓ Email delivered
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 432ms
+// ----------------------------------------------------------------------
+
+// ============================================
+// PROFILE MANAGEMENT LOGS
+// ============================================
+
+// ----------------------------------------------------------------------
+✏️ [${new Date().toLocaleTimeString()}] UPDATE PROFILE
+   └─ PUT /api/auth/profile
+   
+   📝 Updates: { fullName: "John Smith", department: "Engineering" }
+   
+   🔄 Before Update:
+   • fullName: "John Doe"
+   • department: "Sales"
+   • position: "Associate"
+   
+   🔄 After Update:
+   • fullName: "John Smith"
+   • department: "Engineering"
+   • position: "Associate" (unchanged)
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 123ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+🔐 [${new Date().toLocaleTimeString()}] CHANGE PASSWORD
+   └─ PUT /api/auth/change-password
+   
+   🔑 Authentication:
+   • User: 507f1f77bcf86cd799439011
+   • Current password: ✓ Verified
+   
+   🔐 Password Change:
+   • Old hash: $2a$10$abc123...
+   • New hash: $2a$10$xyz789...
+   • Updated: ✓ Success
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 234ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+⚙️ [${new Date().toLocaleTimeString()}] UPDATE PREFERENCES
+   └─ PUT /api/auth/preferences
+   
+   📋 Preferences Update:
+   • theme: light → dark
+   • language: null → en
+   • notifications: true (unchanged)
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 78ms
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+🖼️ [${new Date().toLocaleTimeString()}] UPLOAD AVATAR
+   └─ POST /api/auth/avatar
+   
+   📁 File Upload:
+   • Filename: avatar-1639458201123.jpg
+   • Size: 245 KB
+   • Type: image/jpeg
+   • Destination: /uploads/avatars/
+   
+   💾 Database Update:
+   • avatar field: /uploads/avatars/avatar-1639458201123.jpg
+   
+   ✅ Response: 200 OK
+   ⏱️ Time Taken: 345ms
+// ----------------------------------------------------------------------
+
+// ============================================
+// DATABASE OPERATIONS LOGS
+// ============================================
+
+📊 [${new Date().toLocaleTimeString()}] DATABASE QUERY
+   • Operation: User.find()
+   • Filter: { role: "employee" }
+   • Limit: 10
+   • Sort: { createdAt: -1 }
+   • Results: 8 documents
+   • Execution time: 45ms
+
+📝 [${new Date().toLocaleTimeString()}] DATABASE UPDATE
+   • Collection: users
+   • Document ID: 507f1f77bcf86cd799439011
+   • Updates: { $set: { lastLogin: new Date() } }
+   • Modified: ✓ 1 document
+   • Execution time: 23ms
+
+❌ [${new Date().toLocaleTimeString()}] DATABASE ERROR
+   • Error: MongoNetworkError
+   • Message: failed to connect to server
+   • Stack: [connection error details]
+   • Retry: Attempt 1/3
+
+// ============================================
+// EMAIL SERVICE LOGS
+// ============================================
+
+📧 [${new Date().toLocaleTimeString()}] SENDING EMAIL
+   • To: user@example.com
+   • Subject: Password Reset OTP
+   • Template: otp-email.html
+   • Variables: { name: "John Doe", otp: "483729" }
+   
+   📤 SMTP Connection:
+   • Host: smtp.gmail.com
+   • Port: 587
+   • Secure: TLS
+   
+   ✅ Email sent successfully
+   • Message ID: <abc123@mail.gmail.com>
+   • Response: 250 OK
+   • Time: 890ms
+
+❌ [${new Date().toLocaleTimeString()}] EMAIL FAILED
+   • Error: Connection refused
+   • SMTP: smtp.gmail.com:587
+   • Retry: Scheduled in 30 seconds
+
+// ============================================
+// ERROR HANDLING LOGS
+// ============================================
+
+❌ [${new Date().toLocaleTimeString()}] UNCAUGHT EXCEPTION
+   • Error: ${error.message}
+   • Stack: ${error.stack}
+   • Type: ${error.name}
+   • Graceful shutdown initiated...
+
+⚠️ [${new Date().toLocaleTimeString()}] UNHANDLED REJECTION
+   • Promise: [Promise object]
+   • Reason: ${reason}
+   • Caught and handled
+
+❌ [${new Date().toLocaleTimeString()}] RATE LIMIT EXCEEDED
+   • IP: 192.168.1.100
+   • Endpoint: /api/auth/login
+   • Retry-After: 15 minutes
+
+// ============================================
+// PERFORMANCE METRICS
+// ============================================
+
+📊 [${new Date().toLocaleTimeString()}] PERFORMANCE SNAPSHOT
+   • Memory Usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB
+   • CPU Load: ${os.loadavg()[0].toFixed(2)}%
+   • Active Connections: ${server.connections}
+   • Uptime: ${process.uptime().toFixed(0)} seconds
+   • Requests/Minute: 45
+   • Avg Response Time: 187ms
+
+// ============================================
+// SERVER SHUTDOWN LOGS
+// ============================================
+
+🛑 [${new Date().toLocaleTimeString()}] SHUTTING DOWN SERVER
+   • Signal: SIGINT
+   • Reason: User initiated
+   
+   🔒 Closing database connection...
+   ✓ MongoDB disconnected
+   
+   🔒 Closing HTTP server...
+   ✓ Server closed
+   
+   👋 Goodbye! Server stopped at ${new Date().toISOString()}
+
+// ============================================
+// END OF LOGS
+// ============================================
