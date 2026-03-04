@@ -83,7 +83,7 @@ const [successMessage, setSuccessMessage] = useState('');
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/reset-password', {
+      const response = await axios.post('https://dashboardss-e7ez.onrender.com/api/auth/reset-password', {
         resetToken,
         newPassword: formData.newPassword,
         confirmPassword: formData.confirmPassword
