@@ -1,5 +1,6 @@
 
 
+
 // import { useState, useEffect, useCallback } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import authService from '../services/authService';
@@ -88,7 +89,6 @@
 //     }
 //   }, []);
 
-//   // REGISTER FUNCTION - ADD THIS BACK (uncommented and fixed)
 //   const register = useCallback(async (userData) => {
 //     setLoading(true);
 //     setError(null);
@@ -158,15 +158,143 @@
 //     return roles?.includes(user?.role) || false;
 //   }, [user]);
 
+//   const updateUser = useCallback(async (userData) => {
+//     setLoading(true);
+//     setError(null);
+    
+//     try {
+//       const response = await authService.updateProfile(userData);
+      
+//       if (response && response.success) {
+//         setUser(response.user);
+//         return {
+//           success: true,
+//           user: response.user,
+//         };
+//       } else {
+//         return {
+//           success: false,
+//           error: response?.message || 'Failed to update profile',
+//         };
+//       }
+//     } catch (err) {
+//       console.error('Update user error:', err);
+//       const errorMessage = err.message || 'Failed to update profile';
+//       setError(errorMessage);
+//       return {
+//         success: false,
+//         error: errorMessage,
+//       };
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   const changePassword = useCallback(async (currentPassword, newPassword) => {
+//     setLoading(true);
+//     setError(null);
+    
+//     try {
+//       const response = await authService.changePassword({
+//         currentPassword,
+//         newPassword
+//       });
+      
+//       return response;
+//     } catch (err) {
+//       console.error('Change password error:', err);
+//       const errorMessage = err.message || 'Failed to change password';
+//       setError(errorMessage);
+//       return {
+//         success: false,
+//         error: errorMessage,
+//       };
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   const updatePreferences = useCallback(async (preferences) => {
+//     setLoading(true);
+//     setError(null);
+    
+//     try {
+//       const response = await authService.updatePreferences(preferences);
+      
+//       if (response && response.success) {
+//         setUser(response.user);
+//         return {
+//           success: true,
+//           user: response.user,
+//         };
+//       } else {
+//         return {
+//           success: false,
+//           error: response?.message || 'Failed to update preferences',
+//         };
+//       }
+//     } catch (err) {
+//       console.error('Update preferences error:', err);
+//       const errorMessage = err.message || 'Failed to update preferences';
+//       setError(errorMessage);
+//       return {
+//         success: false,
+//         error: errorMessage,
+//       };
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   const uploadAvatar = useCallback(async (file) => {
+//     setLoading(true);
+//     setError(null);
+    
+//     try {
+//       const formData = new FormData();
+//       formData.append('avatar', file);
+      
+//       const response = await authService.uploadAvatar(formData);
+      
+//       if (response && response.success) {
+//         setUser(response.user);
+//         return {
+//           success: true,
+//           user: response.user,
+//           avatarUrl: response.user.avatar,
+//         };
+//       } else {
+//         return {
+//           success: false,
+//           error: response?.message || 'Failed to upload avatar',
+//         };
+//       }
+//     } catch (err) {
+//       console.error('Upload avatar error:', err);
+//       const errorMessage = err.message || 'Failed to upload avatar';
+//       setError(errorMessage);
+//       return {
+//         success: false,
+//         error: errorMessage,
+//       };
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
 //   return {
 //     user,
 //     loading,
 //     error,
 //     login,
-//     register,  // Make sure this is included
+//     register,
 //     logout,
 //     hasRole,
 //     hasAnyRole,
+//     updateUser,
+//     changePassword,
+//     updatePreferences,
+//     uploadAvatar,
 //     isAuthenticated: authService.isAuthenticated(),
 //   };
 // };
@@ -418,14 +546,11 @@ export const useAuth = () => {
     }
   }, []);
 
-  const uploadAvatar = useCallback(async (file) => {
+  const uploadAvatar = useCallback(async (formData) => {
     setLoading(true);
     setError(null);
     
     try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      
       const response = await authService.uploadAvatar(formData);
       
       if (response && response.success) {
@@ -454,6 +579,38 @@ export const useAuth = () => {
     }
   }, []);
 
+  const deleteAvatar = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await authService.deleteAvatar();
+      
+      if (response && response.success) {
+        setUser(response.user);
+        return {
+          success: true,
+          user: response.user,
+        };
+      } else {
+        return {
+          success: false,
+          error: response?.message || 'Failed to delete avatar',
+        };
+      }
+    } catch (err) {
+      console.error('Delete avatar error:', err);
+      const errorMessage = err.message || 'Failed to delete avatar';
+      setError(errorMessage);
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     user,
     loading,
@@ -467,6 +624,7 @@ export const useAuth = () => {
     changePassword,
     updatePreferences,
     uploadAvatar,
+    deleteAvatar,
     isAuthenticated: authService.isAuthenticated(),
   };
 };
