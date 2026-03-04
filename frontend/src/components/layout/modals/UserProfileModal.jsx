@@ -1128,49 +1128,157 @@ const UserProfileModal = ({ isOpen, onClose, onLogout }) => {
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   };
 
+  // const handleAvatarUpload = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   // Validate file type
+  //   const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+  //   if (!validTypes.includes(file.type)) {
+  //     setMessage({ type: 'error', text: 'Please upload a valid image file (JPEG, PNG, or GIF)' });
+  //     return;
+  //   }
+
+  //   // Validate file size (5MB max)
+  //   if (file.size > 5 * 1024 * 1024) {
+  //     setMessage({ type: 'error', text: 'File size must be less than 5MB' });
+  //     return;
+  //   }
+
+  //   // Create preview
+  //   const reader = new FileReader();
+  //   reader.onloadend = () => {
+  //     setAvatarPreview(reader.result);
+  //   };
+  //   reader.readAsDataURL(file);
+
+  //   const formData = new FormData();
+  //   formData.append('avatar', file);
+
+  //   setLoading(true);
+  //   setMessage({ type: '', text: '' });
+
+  //   const result = await uploadAvatar(formData);
+    
+  //   if (result.success) {
+  //     setMessage({ type: 'success', text: 'Avatar updated successfully!' });
+  //     setAvatarPreview(null);
+  //   } else {
+  //     setMessage({ type: 'error', text: result.error || 'Failed to upload avatar' });
+  //     setAvatarPreview(null);
+  //   }
+    
+  //   setLoading(false);
+  //   setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  // };
+
+
   const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    if (!validTypes.includes(file.type)) {
-      setMessage({ type: 'error', text: 'Please upload a valid image file (JPEG, PNG, or GIF)' });
-      return;
+  // Validate file type
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+  if (!validTypes.includes(file.type)) {
+    setMessage({ type: 'error', text: 'Please upload a valid image file (JPEG, PNG, or GIF)' });
+    return;
+  }
+
+  // Agar file 1MB से बड़ी है तो compress करें
+  let processedFile = file;
+  if (file.size > 1 * 1024 * 1024) { // 1MB
+    try {
+      setMessage({ type: 'info', text: 'Compressing image...' });
+      
+      // Create image preview for compression
+      const compressedFile = await compressImage(file);
+      if (compressedFile) {
+        processedFile = compressedFile;
+        console.log(`Compressed: ${(file.size / 1024).toFixed(2)}KB -> ${(compressedFile.size / 1024).toFixed(2)}KB`);
+      }
+    } catch (err) {
+      console.error('Compression failed:', err);
+      // Continue with original file if compression fails
     }
+  }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'File size must be less than 5MB' });
-      return;
-    }
+  // Validate compressed file size (max 5MB)
+  if (processedFile.size > 5 * 1024 * 1024) {
+    setMessage({ type: 'error', text: 'File size must be less than 5MB even after compression' });
+    return;
+  }
 
-    // Create preview
+  const formData = new FormData();
+  formData.append('avatar', processedFile);
+
+  setLoading(true);
+  setMessage({ type: '', text: '' });
+
+  const result = await uploadAvatar(formData);
+  
+  if (result.success) {
+    setMessage({ type: 'success', text: 'Avatar updated successfully!' });
+  } else {
+    setMessage({ type: 'error', text: result.error || 'Failed to upload avatar' });
+  }
+  
+  setLoading(false);
+  setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+};
+
+// Image compression function
+const compressImage = (file) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setAvatarPreview(reader.result);
-    };
     reader.readAsDataURL(file);
-
-    const formData = new FormData();
-    formData.append('avatar', file);
-
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-
-    const result = await uploadAvatar(formData);
-    
-    if (result.success) {
-      setMessage({ type: 'success', text: 'Avatar updated successfully!' });
-      setAvatarPreview(null);
-    } else {
-      setMessage({ type: 'error', text: result.error || 'Failed to upload avatar' });
-      setAvatarPreview(null);
-    }
-    
-    setLoading(false);
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-  };
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Max dimensions
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Compress to JPEG with 0.7 quality
+        canvas.toBlob(
+          (blob) => {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          0.7 // 70% quality
+        );
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+};
 
   const handleDeleteAvatar = async () => {
     if (!window.confirm('Are you sure you want to delete your avatar?')) {
