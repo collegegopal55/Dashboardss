@@ -163,7 +163,7 @@ app.use((req, res, next) => {
 const connectDB = async (retries = 5) => {
   for (let i = 0; i < retries; i++) {
     try {
-      await mongoose.connect(process.env.MONGODB_URI});
+      await mongoose.connect(process.env.MONGODB_URI);
       console.log("✅ MongoDB Connected Successfully");
       return true;
     } catch (err) {
