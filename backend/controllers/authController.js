@@ -787,6 +787,7 @@ const {
 } = require('../utils/emailService');
 const mongoose = require('mongoose');
 const { cloudinary } = require('../config/cloudinary');
+require("dotenv").config();
 
 /**
  * Generate JWT Token
