@@ -1,573 +1,246 @@
 
+// const express = require("express");
+// const cors = require("cors");
+// const mongoose = require("mongoose");
+// const fs = require('fs');
+// const path = require("path"); // Move this to the top with other imports
+// require("dotenv").config();
 
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const cors = require('cors');
-// const dotenv = require('dotenv');
-// const { connectDB, getConnectionStatus, closeConnection } = require('./config/db');
-
-
-// // Load environment variables
-// dotenv.config();
-
-// // Initialize express
 // const app = express();
 
-// // Middleware
-// app.use(cors({
-//   origin: [ 'http://localhost:5173', 'http://localhost:5174'],
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
 
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
+// // Create logs stream
+// const logStream = fs.createWriteStream(path.join(__dirname, 'logs.txt'), { flags: 'a' });
 
-// // Import routes
-// const authRoutes = require('./routes/authRoutes');
-
-// // Health check route (doesn't need DB connection)
-// app.get('/api/health', (req, res) => {
-//   const dbStatus = getConnectionStatus();
-//   res.json({ 
-//     success: true, 
-//     message: 'Server is running',
-//     timestamp: new Date().toISOString(),
-//     environment: process.env.NODE_ENV,
-//     uptime: process.uptime(),
-//     database: dbStatus
-//   });
-// });
-
-// // Middleware to check database connection for API routes
-// app.use('/api', async (req, res, next) => {
-//   try {
-//     const dbStatus = getConnectionStatus();
-    
-//     if (!dbStatus.isConnected) {
-//       console.log('⚠️ Database not connected. Current status:', dbStatus.status);
-      
-//       // Don't block health checks
-//       if (req.path === '/health') {
-//         return next();
-//       }
-      
-//       // Try to reconnect for API routes
-//       try {
-//         await connectDB();
-//         console.log('✅ Reconnected to database');
-//       } catch (dbError) {
-//         console.error('❌ Failed to reconnect to database:', dbError);
-//         return res.status(503).json({
-//           success: false,
-//           message: 'Database connection unavailable. Please try again in a moment.'
-//         });
-//       }
-//     }
-//     next();
-//   } catch (error) {
-//     console.error('Database middleware error:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal server error'
-//     });
-//   }
-// });
-
-// // Routes
-// app.use('/api/auth', authRoutes);
-
-// // Error handling middleware
-// app.use((err, req, res, next) => {
-//   console.error('Error stack:', err.stack);
-  
-//   // Handle specific MongoDB errors
-//   if (err.name === 'MongoNotConnectedError' || err.message.includes('Client must be connected')) {
-//     return res.status(503).json({
-//       success: false,
-//       message: 'Database connection lost. Please try again.'
-//     });
-//   }
-  
-//   // Mongoose duplicate key error
-//   if (err.code === 11000) {
-//     return res.status(400).json({ 
-//       success: false, 
-//       message: 'Duplicate field value entered' 
-//     });
-//   }
-  
-//   // Mongoose validation error
-//   if (err.name === 'ValidationError') {
-//     const messages = Object.values(err.errors).map(val => val.message);
-//     return res.status(400).json({ 
-//       success: false, 
-//       message: messages.join(', ') 
-//     });
-//   }
-
-//   res.status(err.status || 500).json({ 
-//     success: false, 
-//     message: err.message || 'Something went wrong!' 
-//   });
-// });
-
-// // 404 handler
-// app.use((req, res) => {
-//   res.status(404).json({ 
-//     success: false, 
-//     message: `Route ${req.originalUrl} not found` 
-//   });
-// });
-
-// // Monitor connection status periodically
-// const monitorConnection = setInterval(() => {
-//   const status = getConnectionStatus();
-//   if (!status.isConnected) {
-//     console.log('⚠️ Database connection monitor: Not connected. Attempting to reconnect...');
-//     connectDB().catch(err => {
-//       console.error('❌ Monitor reconnection failed:', err.message);
-//     });
-//   }
-// }, 30000); // Check every 30 seconds
-
-// // Start server function
-// const startServer = async () => {
-//   try {
-//     // Connect to database first
-//     console.log('🔄 Starting server initialization...');
-//     console.log('🔄 Connecting to MongoDB...');
-    
-//     await connectDB();
-    
- 
-//     const PORT = process.env.PORT || 5000;
-//     const server = app.listen(PORT, () => {
-//       console.log('\n');
-//       console.log('=' .repeat(50));
-//       console.log(`✅ Server Status: RUNNING`);
-//       console.log(`📌 Port: ${PORT}`);
-//       console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-//       console.log(`📊 Database: ${getConnectionStatus().status}`);
-//       console.log(`🔑 Health check: http://localhost:${PORT}/api/health`);
-//       console.log('=' .repeat(50));
-//       console.log('\n');
-//     });
-
-//     // Handle server errors
-//     server.on('error', (error) => {
-//       console.error('❌ Server error:', error);
-//     });
-
-//     // Graceful shutdown
-//     const gracefulShutdown = async (signal) => {
-//       console.log(`\n${signal} received. Closing server and database connection...`);
-      
-//       // Clear monitoring interval
-//       clearInterval(monitorConnection);
-      
-//       server.close(async () => {
-//         try {
-//           await closeConnection();
-//           console.log('✅ Graceful shutdown completed');
-//           process.exit(0);
-//         } catch (error) {
-//           console.error('❌ Error during shutdown:', error);
-//           process.exit(1);
-//         }
-//       });
-
-//       // Force shutdown after timeout
-//       setTimeout(() => {
-//         console.error('❌ Force shutdown due to timeout');
-//         process.exit(1);
-//       }, 10000);
-//     };
-
-//     // Handle termination signals
-//     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-//     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-//   } catch (error) {
-//     console.error('❌ Failed to start server:', error);
-//     console.log('🔄 Retrying in 5 seconds...');
-//     setTimeout(startServer, 5000);
-//   }
+// // Redirect console.log
+// console.log = function(...args) {
+//   const message = args.join(' ');
+//   const timestamp = new Date().toLocaleTimeString();
+//   logStream.write(`[${timestamp}] ${message}\n`);
+//   process.stdout.write(`[${timestamp}] ${message}\n`);
 // };
 
-// // Handle unhandled promise rejections
-// process.on('unhandledRejection', (err, promise) => {
-//   console.log(`❌ Unhandled Rejection at: ${promise}`);
-//   console.log(`❌ Reason: ${err.message}`);
-//   console.log(err);
-//   // Don't exit the process, just log the error
-// });
+// // Redirect console.error
+// console.error = function(...args) {
+//   const message = args.join(' ');
+//   const timestamp = new Date().toLocaleTimeString();
+//   logStream.write(`❌ [${timestamp}] ${message}\n`);
+//   process.stderr.write(`❌ [${timestamp}] ${message}\n`);
+// };
 
-// // Handle uncaught exceptions
-// process.on('uncaughtException', (err) => {
-//   console.log(`❌ Uncaught Exception: ${err.message}`);
-//   console.log(err);
-//   // Don't exit the process, just log the error
-// });
-
-// // Start the server
-// startServer();
-
-
-
-
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const cors = require('cors');
-// const dotenv = require('dotenv');
-// const path = require('path');
-// const { connectDB, getConnectionStatus, closeConnection } = require('./config/db');
-
-// // Load environment variables
-// dotenv.config();
-
-// // Initialize express
-// const app = express();
 
 // // Middleware
 // app.use(cors({
-//   origin: [ 'https://dashboardss-e7ez.onrender.com' ],
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
+//   origin: "https://dashboardss-e7ez.onrender.com",
+//   credentials: true
 // }));
 
 // app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
 
-// // Import routes
-// const authRoutes = require('./routes/authRoutes');
+// // MongoDB Connect
+// mongoose.connect(process.env.MONGODB_URI)
+// .then(() => console.log("✅ MongoDB Connected"))
+// .catch((err) => console.log("❌ MongoDB Error:", err.message));
 
-// // Health check route (doesn't need DB connection)
-// app.get('/api/health', (req, res) => {
-//   const dbStatus = getConnectionStatus();
-//   res.json({ 
-//     success: true, 
-//     message: 'Server is running',
-//     timestamp: new Date().toISOString(),
-//     environment: process.env.NODE_ENV,
-//     uptime: process.uptime(),
-//     database: dbStatus
-//   });
-// });
+// // Serve static files from uploads directory - MOVED HERE (before routes)
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// // Middleware to check database connection for API routes
-// app.use('/api', async (req, res, next) => {
-//   try {
-//     const dbStatus = getConnectionStatus();
-    
-//     if (!dbStatus.isConnected) {
-//       console.log('⚠️ Database not connected. Current status:', dbStatus.status);
-      
-//       // Don't block health checks
-//       if (req.path === '/health') {
-//         return next();
-//       }
-      
-//       // Try to reconnect for API routes
-//       try {
-//         await connectDB();
-//         console.log('✅ Reconnected to database');
-//       } catch (dbError) {
-//         console.error('❌ Failed to reconnect to database:', dbError);
-//         return res.status(503).json({
-//           success: false,
-//           message: 'Database connection unavailable. Please try again in a moment.'
-//         });
-//       }
-//     }
-//     next();
-//   } catch (error) {
-//     console.error('Database middleware error:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal server error'
-//     });
-//   }
-// });
 
-// // API Routes
-// app.use('/api/auth', authRoutes);
-
-// // Serve static files from the React app build directory
-// if (process.env.NODE_ENV === 'production') {
-//   // In production, serve the built frontend
-//   const buildPath = path.join(__dirname, '../frontend/dist'); // Adjust path as needed
-//   app.use(express.static(buildPath));
-  
-//   // Handle React routing, return all requests to React app
-//   app.get(/.*/, (req, res) => {
-//     if (!req.path.startsWith('/api')) {
-//       res.sendFile(path.join(buildPath, 'index.html'));
-//     }
-//   });
-// } else {
-//   // In development, you might want to redirect to the React dev server
-//   app.get('/', (req, res) => {
-//     res.send(`
-//       <html>
-//         <head>
-//           <title>Pezzi Attendance System</title>
-//           <style>
-//             body {
-//               font-family: Arial, sans-serif;
-//               display: flex;
-//               justify-content: center;
-//               align-items: center;
-//               height: 100vh;
-//               margin: 0;
-//               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-//               color: white;
-//             }
-//             .container {
-//               text-align: center;
-//               padding: 2rem;
-//               background: rgba(255, 255, 255, 0.1);
-//               border-radius: 10px;
-//               backdrop-filter: blur(10px);
-//             }
-//             h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-//             p { font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9; }
-//             .links {
-//               display: flex;
-//               gap: 1rem;
-//               justify-content: center;
-//             }
-//             a {
-//               color: white;
-//               text-decoration: none;
-//               padding: 0.5rem 1rem;
-//               border: 1px solid white;
-//               border-radius: 5px;
-//               transition: all 0.3s;
-//             }
-//             a:hover {
-//               background: white;
-//               color: #764ba2;
-//             }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="container">
-//             <h1>🚀 Pezzi Attendance System API</h1>
-//             <p>Backend server is running successfully!</p>
-//             <div class="links">
-//               <a href="/api/health">Check API Health</a>
-//               <a href="https://dashboardss-e7ez.onrender.com">Go to Frontend (Vite Dev Server)</a>
-//             </div>
-//           </div>
-//         </body>
-//       </html>
-//     `);
-//   });
+// const uploadsDir = path.join(__dirname, 'uploads/avatars');
+// if (!fs.existsSync(uploadsDir)) {
+//   fs.mkdirSync(uploadsDir, { recursive: true });
+//   console.log('✅ Created uploads directory:', uploadsDir);
 // }
 
-// // Error handling middleware
-// app.use((err, req, res, next) => {
-//   console.error('Error stack:', err.stack);
-  
-//   // Handle specific MongoDB errors
-//   if (err.name === 'MongoNotConnectedError' || err.message.includes('Client must be connected')) {
-//     return res.status(503).json({
-//       success: false,
-//       message: 'Database connection lost. Please try again.'
-//     });
-//   }
-  
-//   // Mongoose duplicate key error
-//   if (err.code === 11000) {
-//     return res.status(400).json({ 
-//       success: false, 
-//       message: 'Duplicate field value entered' 
-//     });
-//   }
-  
-//   // Mongoose validation error
-//   if (err.name === 'ValidationError') {
-//     const messages = Object.values(err.errors).map(val => val.message);
-//     return res.status(400).json({ 
-//       success: false, 
-//       message: messages.join(', ') 
-//     });
-//   }
+// // Routes
+// const authRoutes = require("./routes/authRoutes");
+// app.use("/api/auth", authRoutes);
 
-//   res.status(err.status || 500).json({ 
-//     success: false, 
-//     message: err.message || 'Something went wrong!' 
+// // Test Route
+// app.get("/api/test", (req, res) => {
+//   res.json({ message: "API working" });
+// });
+
+// // Health Check
+// app.get("/api/health", (req, res) => {
+//   res.json({
+//     success: true,
+//     database: mongoose.connection.readyState === 1 ? "connected" : "not connected"
 //   });
 // });
 
-// // 404 handler for API routes only
-// app.use('/api/', (req, res) => {
-//   res.status(404).json({ 
-//     success: false, 
-//     message: `API route ${req.originalUrl} not found` 
-//   });
+// // Frontend Serve
+// app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// // Catch-all route for frontend
+// app.get(/.*/, (req, res) => {
+//   res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
 // });
 
-// // Monitor connection status periodically
-// const monitorConnection = setInterval(() => {
-//   const status = getConnectionStatus();
-//   if (!status.isConnected) {
-//     console.log('⚠️ Database connection monitor: Not connected. Attempting to reconnect...');
-//     connectDB().catch(err => {
-//       console.error('❌ Monitor reconnection failed:', err.message);
-//     });
-//   }
-// }, 30000); // Check every 30 seconds
+// // Server Start
+// const PORT = process.env.PORT || 5000;
 
-// // Start server function
-// const startServer = async () => {
-//   try {
-//     // Connect to database first
-//     console.log('🔄 Starting server initialization...');
-//     console.log('🔄 Connecting to MongoDB...');
-    
-//     await connectDB();
-    
-//     const PORT = process.env.PORT || 5000;
-//     const server = app.listen(PORT, () => {
-//       console.log('\n');
-//       console.log('=' .repeat(50));
-//       console.log(`✅ Server Status: RUNNING`);
-//       console.log(`📌 Port: ${PORT}`);
-//       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-//       console.log(`📊 Database: ${getConnectionStatus().status}`);
-//       console.log(`🔑 Health check: http://localhost:${PORT}/api/health`);
-      
-//       if (process.env.NODE_ENV === 'production') {
-//         console.log(`🌐 Frontend: Serving from build directory`);
-//         console.log(`🌐 Access app at: http://localhost:${PORT}`);
-//       } else {
-//         console.log(`🌐 Frontend dev server: http://localhost:5173`);
-//       }
-      
-//       console.log('=' .repeat(50));
-//       console.log('\n');
-//     });
-
-//     // Handle server errors
-//     server.on('error', (error) => {
-//       console.error('❌ Server error:', error);
-//     });
-
-//     // Graceful shutdown
-//     const gracefulShutdown = async (signal) => {
-//       console.log(`\n${signal} received. Closing server and database connection...`);
-      
-//       // Clear monitoring interval
-//       clearInterval(monitorConnection);
-      
-//       server.close(async () => {
-//         try {
-//           await closeConnection();
-//           console.log('✅ Graceful shutdown completed');
-//           process.exit(0);
-//         } catch (error) {
-//           console.error('❌ Error during shutdown:', error);
-//           process.exit(1);
-//         }
-//       });
-
-//       // Force shutdown after timeout
-//       setTimeout(() => {
-//         console.error('❌ Force shutdown due to timeout');
-//         process.exit(1);
-//       }, 10000);
-//     };
-
-//     // Handle termination signals
-//     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-//     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-//   } catch (error) {
-//     console.error('❌ Failed to start server:', error);
-//     console.log('🔄 Retrying in 5 seconds...');
-//     setTimeout(startServer, 5000);
-//   }
-// };
-
-// // Handle unhandled promise rejections
-// process.on('unhandledRejection', (err, promise) => {
-//   console.log(`❌ Unhandled Rejection at: ${promise}`);
-//   console.log(`❌ Reason: ${err.message}`);
-//   console.log(err);
-//   // Don't exit the process, just log the error
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on port ${PORT}`);
 // });
 
-// // Handle uncaught exceptions
-// process.on('uncaughtException', (err) => {
-//   console.log(`❌ Uncaught Exception: ${err.message}`);
-//   console.log(err);
-//   // Don't exit the process, just log the error
-// });
-
-// // Start the server
-// startServer();
-
-
-
-
-// server.js
 
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const fs = require('fs');
-const path = require("path"); // Move this to the top with other imports
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
 
+// Create logs directory if not exists
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
-// Create logs stream
-const logStream = fs.createWriteStream(path.join(__dirname, 'logs.txt'), { flags: 'a' });
+// Create log streams
+const logStream = fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
+const errorStream = fs.createWriteStream(path.join(logsDir, 'error.log'), { flags: 'a' });
 
-// Redirect console.log
+// Enhanced console logging with timestamps
+const originalLog = console.log;
+const originalError = console.error;
+
 console.log = function(...args) {
-  const message = args.join(' ');
-  const timestamp = new Date().toLocaleTimeString();
+  const timestamp = new Date().toISOString();
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+  ).join(' ');
+  
   logStream.write(`[${timestamp}] ${message}\n`);
-  process.stdout.write(`[${timestamp}] ${message}\n`);
+  originalLog(`[${timestamp}] ${message}`);
 };
 
-// Redirect console.error
 console.error = function(...args) {
-  const message = args.join(' ');
-  const timestamp = new Date().toLocaleTimeString();
-  logStream.write(`❌ [${timestamp}] ${message}\n`);
-  process.stderr.write(`❌ [${timestamp}] ${message}\n`);
+  const timestamp = new Date().toISOString();
+  const message = args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+  ).join(' ');
+  
+  errorStream.write(`❌ [${timestamp}] ${message}\n`);
+  originalError(`❌ [${timestamp}] ${message}`);
 };
 
+// CORS Configuration
+const allowedOrigins = [
+  'https://dashboardss-e7ez.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
 
-// Middleware
 app.use(cors({
-  origin: "https://dashboardss-e7ez.onrender.com",
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
-app.use(express.json());
+// Body parsing middleware with increased limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// MongoDB Connect
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log("✅ MongoDB Connected"))
-.catch((err) => console.log("❌ MongoDB Error:", err.message));
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.url} - ${req.ip}`);
+  next();
+});
 
-// Serve static files from uploads directory - MOVED HERE (before routes)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// MongoDB Connection with retry logic
+const connectDB = async (retries = 5) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+      });
+      console.log("✅ MongoDB Connected Successfully");
+      return true;
+    } catch (err) {
+      console.error(`❌ MongoDB Connection Attempt ${i + 1} failed:`, err.message);
+      if (i === retries - 1) {
+        console.error("❌ All MongoDB connection attempts failed");
+        return false;
+      }
+      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retry
+    }
+  }
+};
 
+// Connect to MongoDB
+connectDB();
 
-const uploadsDir = path.join(__dirname, 'uploads/avatars');
+// MongoDB connection event handlers
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ MongoDB disconnected');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('✅ MongoDB reconnected');
+});
+
+// Create uploads directory if not exists
+const uploadsDir = path.join(__dirname, 'uploads');
+const avatarsDir = path.join(uploadsDir, 'avatars');
+
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('✅ Created uploads directory:', uploadsDir);
 }
+
+if (!fs.existsSync(avatarsDir)) {
+  fs.mkdirSync(avatarsDir, { recursive: true });
+  console.log('✅ Created avatars directory:', avatarsDir);
+}
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(uploadsDir));
+
+// ============ HEALTH CHECK ENDPOINTS (MOST IMPORTANT) ============
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    memory: process.memoryUsage(),
+    cpu: process.cpuUsage()
+  });
+});
+
+app.get("/healthz", (req, res) => {
+  res.status(200).send("OK");
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? "connected" : "not connected",
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+// =================================================================
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -575,28 +248,115 @@ app.use("/api/auth", authRoutes);
 
 // Test Route
 app.get("/api/test", (req, res) => {
-  res.json({ message: "API working" });
-});
-
-// Health Check
-app.get("/api/health", (req, res) => {
-  res.json({
-    success: true,
-    database: mongoose.connection.readyState === 1 ? "connected" : "not connected"
+  res.json({ 
+    message: "API working",
+    timestamp: new Date().toISOString()
   });
 });
 
-// Frontend Serve
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// Debug route to check uploads
+app.get("/api/debug/uploads", (req, res) => {
+  try {
+    const files = fs.readdirSync(avatarsDir);
+    res.json({
+      success: true,
+      uploadsDir: uploadsDir,
+      avatarsDir: avatarsDir,
+      files: files,
+      count: files.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
-// Catch-all route for frontend
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+// ============ FRONTEND SERVING ============
+const frontendPath = path.join(__dirname, "../frontend/dist");
+console.log("📁 Frontend path:", frontendPath);
+
+// Check if frontend build exists
+if (fs.existsSync(frontendPath)) {
+  console.log("✅ Frontend build found at:", frontendPath);
+  app.use(express.static(frontendPath));
+  
+  // Catch-all route for frontend
+  app.get(/.*/, (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"), (err) => {
+      if (err) {
+        console.error("❌ Error sending index.html:", err);
+        res.status(500).send("Error loading application");
+      }
+    });
+  });
+} else {
+  console.warn("⚠️ Frontend build not found at:", frontendPath);
+  // Fallback route
+  app.get("*", (req, res) => {
+    res.status(404).json({
+      error: "Frontend build not found",
+      path: frontendPath
+    });
+  });
+}
+// ===========================================
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.method} ${req.url} not found`
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("❌ Server error:", err);
+  
+  // Handle multer errors
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File too large. Max size is 5MB'
+    });
+  }
+  
+  if (err.message === 'Only image files are allowed') {
+    return res.status(400).json({
+      success: false,
+      message: err.message
+    });
+  }
+
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // Server Start
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`📁 Uploads directory: ${uploadsDir}`);
 });
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('👋 SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('💤 Server closed');
+    mongoose.connection.close(false, () => {
+      console.log('💤 MongoDB connection closed');
+      process.exit(0);
+    });
+  });
+});
+
+module.exports = app;
