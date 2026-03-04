@@ -286,27 +286,63 @@ class AuthService {
     }
   }
 
-  async uploadAvatar(formData) {
-    try {
-      const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+  // async uploadAvatar(formData) {
+  //   try {
+  //     const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data'
+  //       }
+  //     });
       
-      if (response.data && response.data.success) {
-        // Update stored user data
-        const currentUser = this.getCurrentUserFromStorage();
-        const updatedUser = { ...currentUser, ...response.data.user };
-        localStorage.setItem(USER_DATA_KEY, JSON.stringify(updatedUser));
-      }
+  //     if (response.data && response.data.success) {
+  //       // Update stored user data
+  //       const currentUser = this.getCurrentUserFromStorage();
+  //       const updatedUser = { ...currentUser, ...response.data.user };
+  //       localStorage.setItem(USER_DATA_KEY, JSON.stringify(updatedUser));
+  //     }
       
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
+  //     return response.data;
+  //   } catch (error) {
+  //     throw this.handleError(error);
+  //   }
+  // }
+async uploadAvatar(formData) {
+  try {
+    console.log('1. Starting avatar upload...');
+    console.log('2. API Base URL:', API_BASE_URL);
+    console.log('3. Full endpoint:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.UPLOAD_AVATAR}`);
+    
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    console.log('4. Token present:', !!token);
+    
+    // Log form data contents
+    for (let pair of formData.entries()) {
+      console.log('5. FormData:', pair[0], pair[1]);
     }
+    
+    const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    console.log('6. Upload response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('7. Upload error details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: {
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        method: error.config?.method
+      }
+    });
+    throw error;
   }
-
+}
   async logout() {
     try {
       await api.post(API_ENDPOINTS.AUTH.LOGOUT);
