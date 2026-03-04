@@ -19,6 +19,10 @@ export const API_ENDPOINTS = {
     FORGOT_PASSWORD: '/auth/forgot-password',
     VERIFY_OTP: '/auth/verify-otp',
     RESET_PASSWORD: '/auth/reset-password',
+     UPDATE_PROFILE: '/auth/profile',
+    CHANGE_PASSWORD: '/auth/change-password',
+    UPDATE_PREFERENCES: '/auth/preferences',
+    UPLOAD_AVATAR: '/auth/avatar',
   },
   USER: {
     PROFILE: '/user/profile',
