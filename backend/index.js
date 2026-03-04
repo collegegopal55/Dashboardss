@@ -519,10 +519,32 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const fs = require('fs');
 const path = require("path"); // Move this to the top with other imports
 require("dotenv").config();
 
 const app = express();
+
+
+// Create logs stream
+const logStream = fs.createWriteStream(path.join(__dirname, 'logs.txt'), { flags: 'a' });
+
+// Redirect console.log
+console.log = function(...args) {
+  const message = args.join(' ');
+  const timestamp = new Date().toLocaleTimeString();
+  logStream.write(`[${timestamp}] ${message}\n`);
+  process.stdout.write(`[${timestamp}] ${message}\n`);
+};
+
+// Redirect console.error
+console.error = function(...args) {
+  const message = args.join(' ');
+  const timestamp = new Date().toLocaleTimeString();
+  logStream.write(`❌ [${timestamp}] ${message}\n`);
+  process.stderr.write(`❌ [${timestamp}] ${message}\n`);
+};
+
 
 // Middleware
 app.use(cors({
