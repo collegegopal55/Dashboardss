@@ -3,6 +3,8 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
 const { validationResult } = require('express-validator');
 const { 
   generateOTP, 
