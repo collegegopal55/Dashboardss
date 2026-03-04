@@ -157,17 +157,34 @@ const UserProfileModal = ({ isOpen, onClose, onLogout }) => {
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   };
 
+  // const handleAvatarUpload = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   if (file.size > 5 * 1024 * 1024) {
+  //     setMessage({ type: 'error', text: 'File size must be less than 5MB' });
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   const result = await uploadAvatar(file);
+
+
   const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'File size must be less than 5MB' });
-      return;
-    }
+  if (file.size > 5 * 1024 * 1024) {
+    setMessage({ type: 'error', text: 'File size must be less than 5MB' });
+    return;
+  }
 
-    setLoading(true);
-    const result = await uploadAvatar(file);
+  const formData = new FormData();
+  formData.append("avatar", file);   // important
+
+  setLoading(true);
+
+  const result = await uploadAvatar(formData);
     
     if (result.success) {
       setMessage({ type: 'success', text: 'Avatar updated successfully!' });
