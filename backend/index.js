@@ -515,89 +515,55 @@
 
 
 // server.js
-
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const { connectDB, getConnectionStatus, closeConnection } = require('./config/db');
-
-
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
 const app = express();
 
 // Middleware
-// app.use(cors({
-//   origin: 'https://dashboardss-e7ez.onrender.com',
-   
-//   credentials: true
-// }));
-
-
-
 app.use(cors({
-  origin: [ 'https://dashboardss-e7ez.onrender.com' ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: "https://dashboardss-e7ez.onrender.com",
+  credentials: true
 }));
 
 app.use(express.json());
 
+// MongoDB Connect
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => console.log("✅ MongoDB Connected"))
+.catch((err) => console.log("❌ MongoDB Error:", err.message));
 
 
-
-connectDB();
-
-// -------------------
 // Routes
-// -------------------
-try {
-  const authRoutes = require('./routes/authRoutes');
-  app.use('/api/auth', authRoutes);
-} catch (err) {
-  console.log('⚠️ Auth routes not found');
-}
-
-// Health Check
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Server is running',
-    database: mongoose.connection.readyState === 1
-      ? 'connected'
-      : 'not connected'
-  });
-});
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
 
 // Test Route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API working' });
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API working" });
 });
 
-// -------------------
-// Production Frontend
-// -------------------
-
-  const path = require('path');
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-  app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist','index.html'));
+// Health Check
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    database: mongoose.connection.readyState === 1 ? "connected" : "not connected"
   });
-
-
-// -------------------
-// Error Handling
-// -------------------
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: 'Server Error' });
 });
 
-// -------------------
-// Start Server
-// -------------------
+// Frontend Serve
+const path = require("path");
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
+
+// Server Start
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
