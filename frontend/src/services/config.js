@@ -71,7 +71,7 @@
 
 // API Configuration
 export const API_BASE_URL ='https://dashboardss-e7ez.onrender.com/api';
-export const API_TIMEOUT = 50000; // 30 seconds
+export const API_TIMEOUT = 120000; // 30 seconds
 
 // Storage Keys
 export const AUTH_TOKEN_KEY = 'authToken';
