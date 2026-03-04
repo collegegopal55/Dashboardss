@@ -384,76 +384,131 @@ class AuthService {
     }
   }
 
-  async uploadAvatar(formData) {
-    try {
-      console.log('🚀 Starting avatar upload...');
+  // async uploadAvatar(formData) {
+  //   try {
+  //     console.log('🚀 Starting avatar upload...');
       
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
+  //     const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  //     if (!token) {
+  //       throw new Error('No authentication token found');
+  //     }
       
-      console.log('📤 Sending request to:', API_ENDPOINTS.AUTH.UPLOAD_AVATAR);
+  //     console.log('📤 Sending request to:', API_ENDPOINTS.AUTH.UPLOAD_AVATAR);
       
-      // Log form data contents (for debugging)
-      for (let pair of formData.entries()) {
-        console.log('📎 FormData:', pair[0], pair[1] instanceof File ? 
-          `File: ${pair[1].name} (${(pair[1].size / 1024).toFixed(2)} KB)` : 
-          pair[1]);
-      }
+  //     // Log form data contents (for debugging)
+  //     for (let pair of formData.entries()) {
+  //       console.log('📎 FormData:', pair[0], pair[1] instanceof File ? 
+  //         `File: ${pair[1].name} (${(pair[1].size / 1024).toFixed(2)} KB)` : 
+  //         pair[1]);
+  //     }
       
-      const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
+  //     const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //       onUploadProgress: (progressEvent) => {
+  //         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+  //         console.log(`📊 Upload progress: ${percentCompleted}%`);
+  //       }
+  //     });
+
+  //     console.log('✅ Upload response:', response.data);
+
+  //     if (response.data && response.data.success) {
+  //       // Update stored user data with new avatar
+  //       const currentUser = this.getCurrentUserFromStorage();
+  //       const updatedUser = { ...currentUser, ...response.data.user };
+  //       localStorage.setItem(USER_DATA_KEY, JSON.stringify(updatedUser));
+        
+  //       return {
+  //         success: true,
+  //         user: response.data.user,
+  //         avatarUrl: response.data.user.avatar
+  //       };
+  //     }
+
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('❌ Upload error details:', {
+  //       message: error.message,
+  //       response: error.response?.data,
+  //       status: error.response?.status,
+  //       config: {
+  //         url: error.config?.url,
+  //         baseURL: error.config?.baseURL,
+  //         method: error.config?.method
+  //       }
+  //     });
+
+  //     // Handle specific error cases
+  //     if (error.response?.status === 413) {
+  //       throw new Error('File too large. Maximum size is 5MB.');
+  //     }
+  //     if (error.response?.status === 415) {
+  //       throw new Error('Invalid file type. Please upload an image (JPEG, PNG, GIF).');
+  //     }
+  //     if (error.response?.status === 401) {
+  //       throw new Error('Your session has expired. Please login again.');
+  //     }
+
+  //     throw this.handleError(error);
+  //   }
+  // }
+
+
+
+    async uploadAvatar(formData) {
+  try {
+    console.log('🚀 Starting avatar upload...');
+    
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    // Check file size
+    const file = formData.get('avatar');
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('File size must be less than 5MB');
+    }
+
+    console.log(`📎 Uploading file: ${file.name}, Size: ${(file.size / 1024).toFixed(2)}KB`);
+    
+    // छोटे chunks में upload करने की कोशिश करें
+    const response = await api.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 120000, // 2 minutes timeout
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           console.log(`📊 Upload progress: ${percentCompleted}%`);
         }
-      });
-
-      console.log('✅ Upload response:', response.data);
-
-      if (response.data && response.data.success) {
-        // Update stored user data with new avatar
-        const currentUser = this.getCurrentUserFromStorage();
-        const updatedUser = { ...currentUser, ...response.data.user };
-        localStorage.setItem(USER_DATA_KEY, JSON.stringify(updatedUser));
-        
-        return {
-          success: true,
-          user: response.data.user,
-          avatarUrl: response.data.user.avatar
-        };
       }
+    });
 
-      return response.data;
-    } catch (error) {
-      console.error('❌ Upload error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: {
-          url: error.config?.url,
-          baseURL: error.config?.baseURL,
-          method: error.config?.method
-        }
-      });
-
-      // Handle specific error cases
-      if (error.response?.status === 413) {
-        throw new Error('File too large. Maximum size is 5MB.');
-      }
-      if (error.response?.status === 415) {
-        throw new Error('Invalid file type. Please upload an image (JPEG, PNG, GIF).');
-      }
-      if (error.response?.status === 401) {
-        throw new Error('Your session has expired. Please login again.');
-      }
-
-      throw this.handleError(error);
+    console.log('✅ Upload response:', response.data);
+    return response.data;
+    
+  } catch (error) {
+    console.error('❌ Upload error:', error);
+    
+    // Agar timeout error है तो specific message दें
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Upload timeout. Please try with a smaller image.');
     }
+    
+    // Agar network error है
+    if (!error.response) {
+      throw new Error('Network connection lost. Please check your internet and try again.');
+    }
+    
+    throw error;
   }
+}
 
   async deleteAvatar() {
     try {
