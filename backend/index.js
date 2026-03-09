@@ -410,7 +410,7 @@ if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !pr
 
 // CORS Configuration
 const allowedOrigins = [
-  'https://dashboardse.onrender.com'];
+  'https://dashboardss-e7ez.onrender.com'];
 
 app.use(cors({
   origin: function(origin, callback) {
